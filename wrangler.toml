@@ -1,0 +1,12 @@
+name = "cart"
+type = "javascript"
+account_id = "25fd4a605fa32029740e7374ebb26cab"
+workers_dev = true
+
+vars."www.reimajapan.com" = "reima-jp;e0370fdfeed9aeac00130441c6e2cf76;https://www-reimajapan-com.reima.workers.dev/cart"
+vars."us.reima.com" = "reima-us;d2990d8e29e763239f8e8ff6cefc9ebe;https://reima-us.netlify.app/cart/"
+vars."www.reima.ca" = "reima-canada;f116e71286381b2d0589b99a792d3ae7;https://www-reima-ca.reima.workers.dev/cart"
+
+[env.dev]
+name = "cart-dev"
+vars = { "reima-demo.netlify.app" = "reima-jp;e0370fdfeed9aeac00130441c6e2cf76;https://reima-demo.netlify.app/cart/" }
