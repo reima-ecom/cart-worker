@@ -1,4 +1,4 @@
-name: Publish to Cloudflore
+name: Publish to Cloudflare
 
 on:
   push:
