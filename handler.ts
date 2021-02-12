@@ -1,3 +1,4 @@
+import "https://raw.githubusercontent.com/reima-ecom/site-worker/v0.1.1/worker-types.ts";
 import type {
   Checkout,
   checkoutAddItem,

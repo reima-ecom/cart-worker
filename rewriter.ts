@@ -1,5 +1,4 @@
-/// <reference path="../worker-types.d.ts" />
-
+import "https://raw.githubusercontent.com/reima-ecom/site-worker/v0.1.1/worker-cloudflare-types.ts";
 import type { Checkout, LineItem } from "./deps.ts";
 
 type MoneyFormatter = (
