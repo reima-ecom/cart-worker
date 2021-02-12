@@ -9,6 +9,10 @@ import type {
 } from "./deps.ts";
 import type { getResponseRewriter } from "./rewriter.ts";
 import { getCookie } from "./deps.ts";
+import {
+  reportConversionIfExperimentUID,
+  sendConversionToElastic,
+} from "./conversion-reporter.ts";
 
 type CartConfiguration = {
   shopifyStore: string;
@@ -143,8 +147,11 @@ export const getCheckoutOperationParameters = async (
   return checkoutOptions;
 };
 
-export const getEventListener = (deps: RequestHandlerDependencies) =>
-  (event: FetchEvent) => {
+export const getEventListener = (deps: RequestHandlerDependencies) => {
+  const maybeSendConversion = reportConversionIfExperimentUID(
+    sendConversionToElastic,
+  );
+  return (event: FetchEvent) => {
     // if the path has an extension, pass through
     // enable ONLY for local development
     if (event.request.url.split("/").pop()?.includes(".")) {
@@ -156,4 +163,7 @@ export const getEventListener = (deps: RequestHandlerDependencies) =>
       getCheckoutOperationParameters(event.request),
       deps,
     ));
+
+    event.waitUntil(maybeSendConversion(event));
   };
+};

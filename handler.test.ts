@@ -28,6 +28,7 @@ Deno.test("adding works with get variant", () => {
       const body = await (await resp).text();
       assertEquals(body, "checkout");
     },
+    waitUntil: () => undefined,
   };
 
   eventListener(event);
@@ -59,6 +60,7 @@ Deno.test("adding works with form post options", () => {
       const body = await (await resp).text();
       assertEquals(body, "checkout");
     },
+    waitUntil: () => undefined,
   };
 
   eventListener(event);
