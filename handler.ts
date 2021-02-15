@@ -1,14 +1,15 @@
 import "https://raw.githubusercontent.com/reima-ecom/site-worker/v0.1.1/worker-types.ts";
-import type {
+import {
   Checkout,
   checkoutAddItem,
   checkoutGet,
   checkoutRemoveItem,
   CustomAttributes,
+  deleteCookie,
+  getCookie,
   getGraphQlRunner,
 } from "./deps.ts";
 import type { getResponseRewriter } from "./rewriter.ts";
-import { getCookie } from "./deps.ts";
 import {
   reportConversionIfExperimentUID,
   sendConversionToElastic,
@@ -94,7 +95,11 @@ export const _handleRequest = async (
     response = await rewriteResponse(checkout);
   }
 
-  _addCheckoutIdCookie(response, checkout);
+  if (checkout?.paid) {
+    deleteCookie(response, "X-checkout");
+  } else {
+    _addCheckoutIdCookie(response, checkout);
+  }
   return response;
 };
 

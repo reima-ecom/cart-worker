@@ -48,6 +48,7 @@ export type Checkout = {
   url: string;
   subtotal: Money;
   items: LineItem[];
+  paid?: boolean
 };
 
 export type CustomAttributes = CustomAttributesShopify;
@@ -81,6 +82,7 @@ const _toDomain = (shopifyCheckout: CheckoutShopify): Checkout => ({
       }
     },
   })),
+  paid: !!shopifyCheckout.order
 });
 
 export const checkoutRemoveItem = async (

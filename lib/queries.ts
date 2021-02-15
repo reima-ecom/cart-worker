@@ -9,6 +9,7 @@ const FRAGMENTS = `
     id
     webUrl
     subtotal: subtotalPriceV2 { ...MoneyFragment }
+    order: { id }
     lineItems(first: 250) {
       edges {
         node {
@@ -48,6 +49,7 @@ export type Checkout = {
   id: string;
   webUrl: string;
   subtotal: MoneyV2;
+  order?: { id: string };
   lineItems: {
     edges: {
       node: LineItem;
