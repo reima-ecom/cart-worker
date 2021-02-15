@@ -19,7 +19,7 @@ import type {
 } from "./queries.ts";
 import type { getGraphQlRunner } from "./graphql.ts";
 
-type Money = {
+export type Money = {
   amount: number;
   currency: string;
 };
@@ -29,6 +29,11 @@ export type LineItem = {
   title: string;
   quantity: number;
   variant: {
+    id: string;
+    product: {
+      id: string;
+      handle: string;
+    };
     title: string;
     image: {
       src: string;
@@ -63,12 +68,17 @@ const _toDomain = (shopifyCheckout: CheckoutShopify): Checkout => ({
     quantity: node.quantity,
     title: node.title,
     variant: {
+      id: node.variant.id,
       title: node.variant.title,
       price: _shopifyMoneyToDomain(node.variant.price),
       image: {
         src: node.variant.image.src,
         altText: node.variant.image.altText,
       },
+      product: {
+        id: node.variant.product.id,
+        handle: node.variant.product.handle,
+      }
     },
   })),
 });

@@ -15,12 +15,17 @@ const FRAGMENTS = `
           id
           title
           variant {
+            id
             title
             image {
               src: originalSrc
               altText
             }
             price: priceV2 { ...MoneyFragment }
+            product {
+              id
+              handle
+            }
           }
           quantity
         }
@@ -32,6 +37,41 @@ const FRAGMENTS = `
 type CheckoutLineItemInput = {
   quantity: number;
   variantId: string;
+};
+
+export type MoneyV2 = {
+  amount: string;
+  currencyCode: string;
+};
+
+export type Checkout = {
+  id: string;
+  webUrl: string;
+  subtotal: MoneyV2;
+  lineItems: {
+    edges: {
+      node: LineItem;
+    }[];
+  };
+};
+
+export type LineItem = {
+  id: string;
+  title: string;
+  quantity: number;
+  variant: {
+    id: string;
+    title: string;
+    image: {
+      src: string;
+      altText: string;
+    };
+    price: MoneyV2;
+    product: {
+      id: string;
+      handle: string;
+    };
+  };
 };
 
 export type CustomAttributes = {
@@ -50,7 +90,7 @@ export const CHECKOUT_CREATE = `
 export type CheckoutCreateInput = {
   input: {
     lineItems?: CheckoutLineItemInput[];
-    customAttributes?: CustomAttributes
+    customAttributes?: CustomAttributes;
   };
 };
 export type CheckoutCreateResult = {
@@ -108,36 +148,6 @@ export const CHECKOUT_REMOVE_LINEITEM = `
 export type CheckoutRemoveLineitemResult = {
   checkoutLineItemsRemove: {
     checkout: Checkout;
-  };
-};
-
-export type MoneyV2 = {
-  amount: string;
-  currencyCode: string;
-};
-
-export type Checkout = {
-  id: string;
-  webUrl: string;
-  subtotal: MoneyV2;
-  lineItems: {
-    edges: {
-      node: LineItem;
-    }[];
-  };
-};
-
-export type LineItem = {
-  id: string;
-  title: string;
-  quantity: number;
-  variant: {
-    title: string;
-    image: {
-      src: string;
-      altText: string;
-    };
-    price: MoneyV2;
   };
 };
 
