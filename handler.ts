@@ -4,6 +4,7 @@ import {
   checkoutAddItem,
   checkoutGet,
   checkoutRemoveItem,
+  checkoutUpdateItemQuantity,
   CustomAttributes,
   deleteCookie,
   getCookie,
@@ -21,6 +22,13 @@ type CartConfiguration = {
   cartTemplateUrl: string;
 };
 
+type UpdateQuantityOptions = {
+  checkoutId: string;
+  updateItemId: string;
+  quantity: number;
+  acceptType?: string;
+};
+
 type CheckoutOperationOptions = {
   checkoutId?: string;
   addVariantId?: string;
@@ -31,7 +39,7 @@ type CheckoutOperationOptions = {
   removeLineitemId?: string;
   customAttributes?: CustomAttributes;
   acceptType?: string;
-};
+} | UpdateQuantityOptions;
 
 type RequestHandlerDependencies = {
   getGraphQlRunner: typeof getGraphQlRunner;
@@ -54,7 +62,14 @@ export const _handleRequest = async (
     config.shopifyStorefrontToken,
   );
 
-  if (opts.addVariantId) {
+  if ("updateItemId" in opts) {
+    checkout = await checkoutUpdateItemQuantity(
+      graphQlQuery,
+      opts.checkoutId,
+      opts.updateItemId,
+      opts.quantity,
+    );
+  } else if (opts.addVariantId) {
     checkout = await deps.checkoutAddItem(
       graphQlQuery,
       opts.checkoutId,
@@ -156,6 +171,17 @@ const getCustomAttributesFromRequest = (request: Request) =>
 export const getCheckoutOperationParameters = async (
   request: Request,
 ): Promise<CheckoutOperationOptions> => {
+  // PUT means update quantity
+  if (request.method === "PUT") {
+    const data = await request.json();
+    const operation: UpdateQuantityOptions = {
+      updateItemId: data.itemId,
+      quantity: data.quantity,
+      checkoutId: data.checkoutId,
+      acceptType: request.headers.get("Accept") || undefined,
+    };
+    return operation;
+  }
   const checkoutOptions: CheckoutOperationOptions = {
     checkoutId: getCookie(request, "X-checkout"),
     customAttributes: getCustomAttributesFromRequest(request),
@@ -186,12 +212,6 @@ export const getEventListener = (deps: RequestHandlerDependencies) => {
     sendConversionToElastic,
   );
   return (event: FetchEvent) => {
-    // if the path has an extension, pass through
-    // enable ONLY for local development
-    if (event.request.url.split("/").pop()?.includes(".")) {
-      return;
-    }
-
     event.respondWith(_handleRequest(
       getCartConfiguration(event.request),
       getCheckoutOperationParameters(event.request),

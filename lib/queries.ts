@@ -153,6 +153,29 @@ export type CheckoutRemoveLineitemResult = {
   };
 };
 
+export const CHECKOUT_UPDATE_LINEITEM = `
+  ${FRAGMENTS}
+  mutation checkoutLineItemsUpdate($lineItems: [CheckoutLineItemInput!]!, $checkoutId: ID!) {
+    result: checkoutLineItemsUpdate(lineItems: $lineItems, checkoutId: $checkoutId) {
+      checkout { ...${FRAGMENTS_CHECKOUT} }
+      checkoutUserErrors {
+        code
+        field
+        message
+      }
+    }
+  }
+`;
+export type CheckoutUpdateLineitemVariables = {
+  checkoutId: string;
+  lineItems: { id: string; quantity: number }[];
+};
+export type CheckoutResult = {
+  result: {
+    checkout: Checkout;
+  };
+};
+
 export const PRODUCT_VARIANT_ID = `
   fragment ProductVariant on Product {
     variantBySelectedOptions (selectedOptions: $selectedOptions) {

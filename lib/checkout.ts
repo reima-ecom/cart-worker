@@ -3,6 +3,9 @@ import {
   CHECKOUT_CREATE,
   CHECKOUT_QUERY,
   CHECKOUT_REMOVE_LINEITEM,
+  CHECKOUT_UPDATE_LINEITEM,
+  CheckoutResult,
+  CheckoutUpdateLineitemVariables,
   PRODUCT_VARIANT_ID,
 } from "./queries.ts";
 import type {
@@ -48,7 +51,7 @@ export type Checkout = {
   url: string;
   subtotal: Money;
   items: LineItem[];
-  paid?: boolean
+  paid?: boolean;
 };
 
 export type CustomAttributes = CustomAttributesShopify;
@@ -79,10 +82,10 @@ const _toDomain = (shopifyCheckout: CheckoutShopify): Checkout => ({
       product: {
         id: node.variant.product.id,
         handle: node.variant.product.handle,
-      }
+      },
     },
   })),
-  paid: !!shopifyCheckout.order
+  paid: !!shopifyCheckout.order,
 });
 
 export const checkoutRemoveItem = async (
@@ -98,6 +101,28 @@ export const checkoutRemoveItem = async (
     },
   });
   return _toDomain(result.checkoutLineItemsRemove.checkout);
+};
+
+export const checkoutUpdateItemQuantity = async (
+  graphQlRunner: GraphQlRunner,
+  checkoutId: string,
+  lineItemId: string,
+  quantity: number,
+): Promise<Checkout> => {
+  const result = await graphQlRunner<
+    CheckoutResult,
+    CheckoutUpdateLineitemVariables
+  >({
+    query: CHECKOUT_UPDATE_LINEITEM,
+    variables: {
+      checkoutId,
+      lineItems: [{
+        id: lineItemId,
+        quantity,
+      }],
+    },
+  });
+  return _toDomain(result.result.checkout);
 };
 
 /**
