@@ -168,20 +168,26 @@ const getCustomAttributesFromCookie = (
 const getCustomAttributesFromRequest = (request: Request) =>
   getCustomAttributesFromCookie(request.headers.get("Cookie"));
 
+export type UpdateQuantityPutRequestBody = {
+  itemId: string;
+  quantity: number;
+};
+
 export const getCheckoutOperationParameters = async (
   request: Request,
 ): Promise<CheckoutOperationOptions> => {
   // PUT means update quantity
   if (request.method === "PUT") {
-    const data = await request.json();
+    const data: UpdateQuantityPutRequestBody = await request.json();
     const operation: UpdateQuantityOptions = {
       updateItemId: data.itemId,
       quantity: data.quantity,
-      checkoutId: data.checkoutId,
+      checkoutId: getCookie(request, "X-checkout") || "",
       acceptType: request.headers.get("Accept") || undefined,
     };
     return operation;
   }
+
   const checkoutOptions: CheckoutOperationOptions = {
     checkoutId: getCookie(request, "X-checkout"),
     customAttributes: getCustomAttributesFromRequest(request),
