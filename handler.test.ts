@@ -88,7 +88,7 @@ Deno.test("checkout operation parameters include accept type", async () => {
   const params = await getCheckoutOperationParameters(
     new Request("http://localhost", {
       headers: {
-        "Accept-Type": "application/json",
+        "Accept": "application/json",
       },
     }),
   );

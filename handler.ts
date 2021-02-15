@@ -86,6 +86,8 @@ export const _handleRequest = async (
       headers: {
         "Content-Type": "application/json",
       },
+      // return 204 (no content) if no checkout
+      status: checkout ? 200 : 204,
     });
   } else {
     const rewriteResponse = deps.getResponseRewriter(config.cartTemplateUrl);
@@ -152,7 +154,7 @@ export const getCheckoutOperationParameters = async (
   const checkoutOptions: CheckoutOperationOptions = {
     checkoutId: getCookie(request, "X-checkout"),
     customAttributes: getCustomAttributesFromRequest(request),
-    acceptType: request.headers.get("Accept-Type") || undefined,
+    acceptType: request.headers.get("Accept") || undefined,
   };
   const url = new URL(request.url);
   if (url.searchParams.has("add")) {
