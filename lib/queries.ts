@@ -155,7 +155,7 @@ export type CheckoutRemoveLineitemResult = {
 
 export const CHECKOUT_UPDATE_LINEITEM = `
   ${FRAGMENTS}
-  mutation checkoutLineItemsUpdate($lineItems: [CheckoutLineItemInput!]!, $checkoutId: ID!) {
+  mutation checkoutLineItemsUpdate($lineItems: [CheckoutLineItemUpdateInput!]!, $checkoutId: ID!) {
     result: checkoutLineItemsUpdate(lineItems: $lineItems, checkoutId: $checkoutId) {
       checkout { ...${FRAGMENTS_CHECKOUT} }
       checkoutUserErrors {
