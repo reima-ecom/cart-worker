@@ -9,7 +9,7 @@ const FRAGMENTS = `
     id
     webUrl
     subtotal: subtotalPriceV2 { ...MoneyFragment }
-    order: { id }
+    order { id }
     lineItems(first: 250) {
       edges {
         node {
