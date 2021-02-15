@@ -25,7 +25,7 @@ Deno.test("element items set to empty on null checkout", () => {
 
 Deno.test("element button url set to checkout web url", () => {
   const elementHandlers = getElementHandlers({
-    webUrl: "checkout url",
+    url: "checkout url",
   } as Checkout);
   let checkoutUrl = "original url attribute";
   const element: Pick<Element, "setAttribute"> = {
@@ -42,8 +42,8 @@ Deno.test("element subtotal set to formatted subtotal", () => {
   const elementHandlers = getElementHandlers(
     {
       subtotal: {
-        amount: "10.00",
-        currencyCode: "USD",
+        amount: 10,
+        currency: "USD",
       },
     } as Checkout,
     () => "$10.00",

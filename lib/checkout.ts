@@ -3,31 +3,81 @@ import {
   CHECKOUT_CREATE,
   CHECKOUT_QUERY,
   CHECKOUT_REMOVE_LINEITEM,
+  PRODUCT_VARIANT_ID,
+} from "./queries.ts";
+import type {
+  Checkout as CheckoutShopify,
   CheckoutAddLineitemResult,
   CheckoutCreateInput,
   CheckoutCreateResult,
   CheckoutQueryResult,
   CheckoutRemoveLineitemResult,
-  CustomAttributes,
-  PRODUCT_VARIANT_ID,
+  CustomAttributes as CustomAttributesShopify,
+  MoneyV2,
   ProductVariantIdResult,
   ProductVariantIdVariables,
 } from "./queries.ts";
 import type { getGraphQlRunner } from "./graphql.ts";
-export type {
-  Checkout,
-  CustomAttributes,
-  LineItem,
-  MoneyV2,
-} from "./queries.ts";
+
+type Money = {
+  amount: number;
+  currency: string;
+};
+
+export type LineItem = {
+  id: string;
+  title: string;
+  quantity: number;
+  variant: {
+    title: string;
+    image: {
+      src: string;
+      altText: string;
+    };
+    price: Money;
+  };
+};
+
+export type Checkout = {
+  id: string;
+  url: string;
+  subtotal: Money;
+  items: LineItem[];
+};
+
+export type CustomAttributes = CustomAttributesShopify;
 
 export type GraphQlRunner = ReturnType<typeof getGraphQlRunner>;
+
+const _shopifyMoneyToDomain = (shopifyMoney: MoneyV2): Money => ({
+  amount: Number.parseFloat(shopifyMoney.amount),
+  currency: shopifyMoney.currencyCode,
+});
+
+const _toDomain = (shopifyCheckout: CheckoutShopify): Checkout => ({
+  id: shopifyCheckout.id,
+  url: shopifyCheckout.webUrl,
+  subtotal: _shopifyMoneyToDomain(shopifyCheckout.subtotal),
+  items: shopifyCheckout.lineItems.edges.map(({ node }) => ({
+    id: node.id,
+    quantity: node.quantity,
+    title: node.title,
+    variant: {
+      title: node.variant.title,
+      price: _shopifyMoneyToDomain(node.variant.price),
+      image: {
+        src: node.variant.image.src,
+        altText: node.variant.image.altText,
+      },
+    },
+  })),
+});
 
 export const checkoutRemoveItem = async (
   graphQlRunner: GraphQlRunner,
   checkoutId: string,
   lineItemId: string,
-) => {
+): Promise<Checkout> => {
   const result = await graphQlRunner<CheckoutRemoveLineitemResult>({
     query: CHECKOUT_REMOVE_LINEITEM,
     variables: {
@@ -35,7 +85,7 @@ export const checkoutRemoveItem = async (
       lineItemIds: [lineItemId],
     },
   });
-  return result.checkoutLineItemsRemove.checkout;
+  return _toDomain(result.checkoutLineItemsRemove.checkout);
 };
 
 /**
@@ -49,7 +99,7 @@ export const checkoutAddItem = async (
   variantOrProductId: string,
   productOptions?: { [optionName: string]: string },
   customAttributes?: CustomAttributes,
-) => {
+): Promise<Checkout> => {
   // first assume this is a variant id
   let variantId = variantOrProductId;
 
@@ -93,7 +143,7 @@ export const checkoutAddItem = async (
         },
       },
     });
-    return createdCheckout.checkoutCreate.checkout;
+    return _toDomain(createdCheckout.checkoutCreate.checkout);
   }
 
   const result = await graphQlRunner<CheckoutAddLineitemResult>({
@@ -103,16 +153,17 @@ export const checkoutAddItem = async (
       lineItems,
     },
   });
-  return result.checkoutLineItemsAdd.checkout;
+  return _toDomain(result.checkoutLineItemsAdd.checkout);
 };
 
 export const checkoutGet = async (
   graphQlRunner: GraphQlRunner,
   checkoutId: string,
-) => {
+): Promise<Checkout | undefined> => {
   const result = await graphQlRunner<CheckoutQueryResult>({
     query: CHECKOUT_QUERY,
     variables: { id: checkoutId },
   });
-  return result.node;
+  if (!result.node) return undefined;
+  return _toDomain(result.node);
 };

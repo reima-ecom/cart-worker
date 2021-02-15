@@ -1,5 +1,9 @@
 import { assertEquals } from "https://deno.land/std@0.86.0/testing/asserts.ts";
-import { getCheckoutOperationParameters, getEventListener } from "./handler.ts";
+import {
+  _handleRequest,
+  getCheckoutOperationParameters,
+  getEventListener,
+} from "./handler.ts";
 import type { Checkout } from "./lib/checkout.ts";
 
 Deno.test("adding works with get variant", () => {
@@ -78,4 +82,82 @@ Deno.test("checkout operation parameters include custom attribute", async () => 
     params.customAttributes,
     [{ key: "A8", value: "a8click" }],
   );
+});
+
+Deno.test("checkout operation parameters include accept type", async () => {
+  const params = await getCheckoutOperationParameters(
+    new Request("http://localhost", {
+      headers: {
+        "Accept-Type": "application/json",
+      },
+    }),
+  );
+  assertEquals(
+    params.acceptType,
+    "application/json",
+  );
+});
+
+Deno.test("handler sets checkout id cookie", async () => {
+  const response = await _handleRequest(
+    {
+      cartTemplateUrl: "",
+      shopifyStore: "",
+      shopifyStorefrontToken: "",
+    },
+    Promise.resolve({ checkoutId: "checkout-id" }),
+    {
+      checkoutAddItem: () => {
+        throw new Error("Not implemented");
+      },
+      checkoutRemoveItem: () => {
+        throw new Error("Not implemented");
+      },
+      getResponseRewriter: () => async () => new Response(),
+      checkoutGet: async () => ({
+        id: "checkout-id",
+        url: "",
+        subtotal: { amount: 0, currency: "" },
+        items: [],
+      }),
+      getGraphQlRunner: () => async <T>() => ({} as T),
+    },
+  );
+  assertEquals(
+    response.headers.get("Set-Cookie"),
+    "X-checkout=checkout-id; Path=/; SameSite=Lax; Max-Age=604800",
+  );
+});
+
+Deno.test("handler able to return json", async () => {
+  const checkout = {
+    id: "checkout-id",
+    url: "",
+    subtotal: { amount: 0, currency: "" },
+    items: [],
+  };
+  const response = await _handleRequest(
+    {
+      cartTemplateUrl: "",
+      shopifyStore: "",
+      shopifyStorefrontToken: "",
+    },
+    Promise.resolve({
+      checkoutId: "checkout-id",
+      acceptType: "application/json",
+    }),
+    {
+      checkoutAddItem: () => {
+        throw new Error("Not implemented");
+      },
+      checkoutRemoveItem: () => {
+        throw new Error("Not implemented");
+      },
+      getResponseRewriter: () => async () => new Response(),
+      checkoutGet: async () => checkout,
+      getGraphQlRunner: () => async <T>() => ({} as T),
+    },
+  );
+  const json = await response.json();
+  assertEquals(json, checkout);
 });

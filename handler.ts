@@ -29,6 +29,7 @@ type CheckoutOperationOptions = {
   };
   removeLineitemId?: string;
   customAttributes?: CustomAttributes;
+  acceptType?: string;
 };
 
 type RequestHandlerDependencies = {
@@ -39,13 +40,12 @@ type RequestHandlerDependencies = {
   getResponseRewriter: typeof getResponseRewriter;
 };
 
-const handleRequest = async (
+export const _handleRequest = async (
   config: CartConfiguration,
   optionsPromise: Promise<CheckoutOperationOptions>,
   deps: RequestHandlerDependencies,
 ): Promise<Response> => {
   const opts = await optionsPromise;
-  const rewriteResponse = deps.getResponseRewriter(config.cartTemplateUrl);
 
   let checkout: Checkout | undefined;
   const graphQlQuery = deps.getGraphQlRunner(
@@ -79,7 +79,33 @@ const handleRequest = async (
     checkout = await deps.checkoutGet(graphQlQuery, opts.checkoutId);
   }
 
-  return rewriteResponse(checkout);
+  let response: Response;
+
+  if (opts.acceptType === "application/json") {
+    response = new Response(JSON.stringify(checkout), {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+  } else {
+    const rewriteResponse = deps.getResponseRewriter(config.cartTemplateUrl);
+    response = await rewriteResponse(checkout);
+  }
+
+  _addCheckoutIdCookie(response, checkout);
+  return response;
+};
+
+const _addCheckoutIdCookie = (
+  response: Response,
+  checkout: Checkout | undefined,
+) => {
+  if (checkout) {
+    response.headers.append(
+      "Set-Cookie",
+      `X-checkout=${checkout.id}; Path=/; SameSite=Lax; Max-Age=604800`,
+    );
+  }
 };
 
 const getCartConfiguration = (
@@ -126,6 +152,7 @@ export const getCheckoutOperationParameters = async (
   const checkoutOptions: CheckoutOperationOptions = {
     checkoutId: getCookie(request, "X-checkout"),
     customAttributes: getCustomAttributesFromRequest(request),
+    acceptType: request.headers.get("Accept-Type") || undefined,
   };
   const url = new URL(request.url);
   if (url.searchParams.has("add")) {
@@ -158,7 +185,7 @@ export const getEventListener = (deps: RequestHandlerDependencies) => {
       return;
     }
 
-    event.respondWith(handleRequest(
+    event.respondWith(_handleRequest(
       getCartConfiguration(event.request),
       getCheckoutOperationParameters(event.request),
       deps,

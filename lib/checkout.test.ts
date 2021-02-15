@@ -3,8 +3,8 @@ import { checkoutAddItem, GraphQlRunner } from "./checkout.ts";
 import { GraphQl } from "./graphql.ts";
 import {
   CHECKOUT_CREATE,
-  CheckoutCreateResult,
   CheckoutCreateInput,
+  CheckoutCreateResult,
 } from "./queries.ts";
 
 Deno.test("adding to new checkout works", async () => {
@@ -15,7 +15,12 @@ Deno.test("adding to new checkout works", async () => {
       return {
         checkoutCreate: {
           checkout: {
-            id: `created-with-${graphQl.variables.input.lineItems![0].variantId}`,
+            id: `created-with-${
+              graphQl.variables.input.lineItems![0].variantId
+            }`,
+            subtotal: { amount: "10", currencyCode: "USD" },
+            lineItems: { edges: [] },
+            webUrl: "",
           },
         },
       } as CheckoutCreateResult;
@@ -23,6 +28,10 @@ Deno.test("adding to new checkout works", async () => {
       throw new Error("Not implemented");
     }
   };
-  const checkout = await checkoutAddItem(graphQlRunner as GraphQlRunner, undefined, "variant");
-  assertEquals(checkout.id, 'created-with-variant');
+  const checkout = await checkoutAddItem(
+    graphQlRunner as GraphQlRunner,
+    undefined,
+    "variant",
+  );
+  assertEquals(checkout.id, "created-with-variant");
 });
