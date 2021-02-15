@@ -11,8 +11,8 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - uses: denolib/setup-deno@v2
-    - name: Bundle worker
-      run: deno bundle sw.ts sw.js
+    - run: deno test
+    - run: deno bundle sw.ts sw.js
     - name: Publish with wrangler
       uses: cloudflare/wrangler-action@1.2.0
       with:
