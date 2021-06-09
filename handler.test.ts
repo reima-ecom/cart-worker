@@ -79,6 +79,7 @@ Deno.test("checkout operation parameters include custom attribute", async () => 
     }),
   );
   assertEquals(
+    // @ts-ignore
     params.customAttributes,
     [{ key: "A8", value: "a8click" }],
   );
