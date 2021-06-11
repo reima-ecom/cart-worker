@@ -112,6 +112,7 @@ export const _handleRequest = async (
         "Access-Control-Allow-Origin",
         config.corsAllowOrigin,
       );
+      response.headers.set("Access-Control-Allow-Credentials", "true");
     }
   } else {
     const rewriteResponse = deps.getResponseRewriter(config.cartTemplateUrl);
