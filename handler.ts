@@ -20,6 +20,7 @@ type CartConfiguration = {
   shopifyStore: string;
   shopifyStorefrontToken: string;
   cartTemplateUrl: string;
+  corsAllowOrigin?: string;
 };
 
 type UpdateQuantityOptions = {
@@ -105,6 +106,13 @@ export const _handleRequest = async (
       // return 204 (no content) if no checkout
       status: checkout ? 200 : 204,
     });
+    // set cors allow if set in config
+    if (config.corsAllowOrigin) {
+      response.headers.set(
+        "Access-Control-Allow-Origin",
+        config.corsAllowOrigin,
+      );
+    }
   } else {
     const rewriteResponse = deps.getResponseRewriter(config.cartTemplateUrl);
     response = await rewriteResponse(checkout);
@@ -146,11 +154,18 @@ const getCartConfiguration = (
     cartTemplateUrl,
   ] = hostConfig.split(";");
 
-  return {
+  const config: CartConfiguration = {
     cartTemplateUrl,
     shopifyStore,
     shopifyStorefrontToken,
   };
+
+  // allow hugo server in cors
+  if (request.headers.get("host") === "localhost:1313") {
+    config.corsAllowOrigin = "localhost:1313";
+  }
+
+  return config;
 };
 
 const getCustomAttributesFromCookie = (
