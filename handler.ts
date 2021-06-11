@@ -20,7 +20,6 @@ type CartConfiguration = {
   shopifyStore: string;
   shopifyStorefrontToken: string;
   cartTemplateUrl: string;
-  corsAllowOrigin?: string;
 };
 
 type UpdateQuantityOptions = {
@@ -106,14 +105,6 @@ export const _handleRequest = async (
       // return 204 (no content) if no checkout
       status: checkout ? 200 : 204,
     });
-    // set cors allow if set in config
-    if (config.corsAllowOrigin) {
-      response.headers.set(
-        "Access-Control-Allow-Origin",
-        config.corsAllowOrigin,
-      );
-      response.headers.set("Access-Control-Allow-Credentials", "true");
-    }
   } else {
     const rewriteResponse = deps.getResponseRewriter(config.cartTemplateUrl);
     response = await rewriteResponse(checkout);
@@ -142,11 +133,11 @@ const _addCheckoutIdCookie = (
 const getCartConfiguration = (
   request: Request,
 ): CartConfiguration => {
-  const host = request.headers.get("Host") || "";
-  const hostConfig: string = (self as any)[host];
+  const url = new URL(request.url);
+  const hostConfig: string = (self as any)[url.host] || (self as any)[url.host + url.pathname];
   // bail if no config found
   if (!hostConfig) {
-    throw new Error(`Host ${host} not configured`);
+    throw new Error(`Host ${url.host} (possibly with path ${url.pathname} not configured`);
   }
   // get store and token
   const [
@@ -160,12 +151,6 @@ const getCartConfiguration = (
     shopifyStore,
     shopifyStorefrontToken,
   };
-
-  // allow hugo server in cors
-  const origin = request.headers.get("origin");
-  if (origin && origin === "http://localhost:1313") {
-    config.corsAllowOrigin = origin;
-  }
 
   return config;
 };
