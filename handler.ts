@@ -134,7 +134,7 @@ const getCartConfiguration = (
   request: Request,
 ): CartConfiguration => {
   const url = new URL(request.url);
-  const hostConfig: string = (self as any)[url.host] || (self as any)[url.host + url.pathname];
+  const hostConfig: string = (self as any)[url.host + url.pathname] || (self as any)[url.host];
   // bail if no config found
   if (!hostConfig) {
     throw new Error(`Host ${url.host} (possibly with path ${url.pathname} not configured`);
