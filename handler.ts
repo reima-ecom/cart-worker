@@ -161,8 +161,9 @@ const getCartConfiguration = (
   };
 
   // allow hugo server in cors
-  if (request.headers.get("host") === "localhost:1313") {
-    config.corsAllowOrigin = "localhost:1313";
+  const origin = request.headers.get("origin");
+  if (origin && origin === "http://localhost:1313") {
+    config.corsAllowOrigin = origin;
   }
 
   return config;
