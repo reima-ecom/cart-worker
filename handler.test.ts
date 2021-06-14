@@ -77,6 +77,7 @@ Deno.test("checkout operation parameters include custom attribute", async () => 
         "Cookie": "X-Checkout-Attr-A8=a8click",
       },
     }),
+    { cartTemplateUrl: "", shopifyStore: "", shopifyStorefrontToken: "" },
   );
   assertEquals(
     // @ts-ignore
@@ -92,10 +93,43 @@ Deno.test("checkout operation parameters include accept type", async () => {
         "Accept": "application/json",
       },
     }),
+    { cartTemplateUrl: "", shopifyStore: "", shopifyStorefrontToken: "" },
   );
   assertEquals(
     params.acceptType,
     "application/json",
+  );
+});
+
+Deno.test("checkout operation parameters works with old style cookie", async () => {
+  const params = await getCheckoutOperationParameters(
+    new Request("http://localhost", {
+      headers: {
+        "Cookie": "X-checkout=checkout-id",
+      },
+    }),
+    { cartTemplateUrl: "", shopifyStore: "test", shopifyStorefrontToken: "" },
+  );
+  assertEquals(
+    // @ts-ignore
+    params.checkoutId,
+    "checkout-id",
+  );
+});
+
+Deno.test("checkout operation parameters works with new style cookie", async () => {
+  const params = await getCheckoutOperationParameters(
+    new Request("http://localhost", {
+      headers: {
+        "Cookie": "X-Checkout-test=checkout-id",
+      },
+    }),
+    { cartTemplateUrl: "", shopifyStore: "test", shopifyStorefrontToken: "" },
+  );
+  assertEquals(
+    // @ts-ignore
+    params.checkoutId,
+    "checkout-id",
   );
 });
 
@@ -120,13 +154,14 @@ Deno.test("handler sets checkout id cookie", async () => {
         url: "",
         subtotal: { amount: 0, currency: "" },
         items: [],
+        store: "test",
       }),
       getGraphQlRunner: () => async <T>() => ({} as T),
     },
   );
   assertEquals(
     response.headers.get("Set-Cookie"),
-    "X-checkout=checkout-id; Path=/; SameSite=Lax; Max-Age=604800",
+    "X-Checkout-test=checkout-id; Path=/; SameSite=Lax; Max-Age=604800",
   );
 });
 
@@ -136,6 +171,7 @@ Deno.test("handler able to return json", async () => {
     url: "",
     subtotal: { amount: 0, currency: "" },
     items: [],
+    store: "test",
   };
   const response = await _handleRequest(
     {

@@ -47,6 +47,7 @@ export type LineItem = {
 };
 
 export type Checkout = {
+  store: string;
   id: string;
   url: string;
   subtotal: Money;
@@ -63,7 +64,8 @@ const _shopifyMoneyToDomain = (shopifyMoney: MoneyV2): Money => ({
   currency: shopifyMoney.currencyCode,
 });
 
-const _toDomain = (shopifyCheckout: CheckoutShopify): Checkout => ({
+const _toDomain = (shopifyCheckout: CheckoutShopify, store: string): Checkout => ({
+  store,
   id: shopifyCheckout.id,
   url: shopifyCheckout.webUrl,
   subtotal: _shopifyMoneyToDomain(shopifyCheckout.subtotal),
@@ -100,7 +102,7 @@ export const checkoutRemoveItem = async (
       lineItemIds: [lineItemId],
     },
   });
-  return _toDomain(result.checkoutLineItemsRemove.checkout);
+  return _toDomain(result.checkoutLineItemsRemove.checkout, result.store);
 };
 
 export const checkoutUpdateItemQuantity = async (
@@ -122,7 +124,7 @@ export const checkoutUpdateItemQuantity = async (
       }],
     },
   });
-  return _toDomain(result.result.checkout);
+  return _toDomain(result.result.checkout, result.store);
 };
 
 /**
@@ -180,7 +182,7 @@ export const checkoutAddItem = async (
         },
       },
     });
-    return _toDomain(createdCheckout.checkoutCreate.checkout);
+    return _toDomain(createdCheckout.checkoutCreate.checkout, createdCheckout.store);
   }
 
   const result = await graphQlRunner<CheckoutAddLineitemResult>({
@@ -190,7 +192,7 @@ export const checkoutAddItem = async (
       lineItems,
     },
   });
-  return _toDomain(result.checkoutLineItemsAdd.checkout);
+  return _toDomain(result.checkoutLineItemsAdd.checkout, result.store);
 };
 
 export const checkoutGet = async (
@@ -202,5 +204,5 @@ export const checkoutGet = async (
     variables: { id: checkoutId },
   });
   if (!result.node) return undefined;
-  return _toDomain(result.node);
+  return _toDomain(result.node, result.store);
 };

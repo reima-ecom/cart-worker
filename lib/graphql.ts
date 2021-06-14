@@ -1,15 +1,19 @@
-export type GraphQl<V = any> = {
+export type GraphQl<V = unknown> = {
   query: string;
   variables: V;
 };
+
+type ShopifyStore = {
+  store: string
+}
 
 export const getGraphQlRunner = (
   shopifyStore: string,
   shopifyStorefrontToken: string,
 ) =>
-  async <T = any, V = any>(
+  async <T = unknown, V = unknown>(
     graphQl: GraphQl<V>,
-  ): Promise<T> => {
+  ): Promise<T & ShopifyStore> => {
     const resp = await fetch(
       `https://${shopifyStore}.myshopify.com/api/2020-04/graphql`,
       {
@@ -25,10 +29,13 @@ export const getGraphQlRunner = (
     if (!resp.ok) throw new Error(`Could not query: ${resp.statusText}`);
     const { data, errors } = await resp.json();
     if (errors) {
-      errors.forEach((error: { message: string; locations: any[] }) => {
+      errors.forEach((error: { message: string; locations: unknown[] }) => {
         console.error(error.message, "at", error.locations);
       });
       throw new Error("Errors encountered - see above");
     }
-    return data;
+    return {
+      ...data,
+      store: shopifyStore,
+    };
   };

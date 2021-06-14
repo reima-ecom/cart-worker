@@ -11,6 +11,7 @@ Deno.test("adding to new checkout works", async () => {
   const graphQlRunner = async (
     graphQl: GraphQl<CheckoutCreateInput>,
   ) => {
+    await Promise.resolve();
     if (graphQl.query === CHECKOUT_CREATE) {
       return {
         checkoutCreate: {

@@ -125,7 +125,7 @@ const _addCheckoutIdCookie = (
   if (checkout) {
     response.headers.append(
       "Set-Cookie",
-      `X-checkout=${checkout.id}; Path=/; SameSite=Lax; Max-Age=604800`,
+      `X-Checkout-${checkout.store}=${checkout.id}; Path=/; SameSite=Lax; Max-Age=604800`,
     );
   }
 };
@@ -177,6 +177,7 @@ export type UpdateQuantityPutRequestBody = {
 
 export const getCheckoutOperationParameters = async (
   request: Request,
+  config: CartConfiguration,
 ): Promise<CheckoutOperationOptions> => {
   // PUT means update quantity
   if (request.method === "PUT") {
@@ -184,14 +185,18 @@ export const getCheckoutOperationParameters = async (
     const operation: UpdateQuantityOptions = {
       updateItemId: data.itemId,
       quantity: data.quantity,
-      checkoutId: getCookie(request, "X-checkout") || "",
+      checkoutId: getCookie(request, `X-Checkout-${config.shopifyStore}`) || "",
       acceptType: request.headers.get("Accept") || undefined,
     };
     return operation;
   }
 
+  let checkoutId = getCookie(request, `X-Checkout-${config.shopifyStore}`)
+  // if no checkout id found with this config, try the old style
+  if (!checkoutId) checkoutId = getCookie(request, 'X-checkout')
+
   const checkoutOptions: CheckoutOperationOptions = {
-    checkoutId: getCookie(request, "X-checkout"),
+    checkoutId,
     customAttributes: getCustomAttributesFromRequest(request),
     acceptType: request.headers.get("Accept") || undefined,
   };
@@ -220,9 +225,11 @@ export const getEventListener = (deps: RequestHandlerDependencies) => {
     sendConversionToElastic,
   );
   return (event: FetchEvent) => {
+    const config = getCartConfiguration(event.request);
+    const operation = getCheckoutOperationParameters(event.request, config);
     event.respondWith(_handleRequest(
-      getCartConfiguration(event.request),
-      getCheckoutOperationParameters(event.request),
+      config,
+      operation,
       deps,
     ));
 
