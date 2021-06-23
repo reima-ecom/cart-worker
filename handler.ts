@@ -111,7 +111,7 @@ export const _handleRequest = async (
   }
 
   if (checkout?.paid) {
-    deleteCookie(response, "X-checkout");
+    deleteCookie(response, `X-Checkout-${checkout.store}`);
   } else {
     _addCheckoutIdCookie(response, checkout);
   }
