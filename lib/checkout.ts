@@ -33,7 +33,7 @@ export type LineItem = {
   quantity: number;
   variant: {
     id: string;
-    color: string;
+    sku: string;
     product: {
       id: string;
       handle: string;
