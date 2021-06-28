@@ -33,6 +33,7 @@ export type LineItem = {
   quantity: number;
   variant: {
     id: string;
+    color: string;
     product: {
       id: string;
       handle: string;
@@ -64,7 +65,10 @@ const _shopifyMoneyToDomain = (shopifyMoney: MoneyV2): Money => ({
   currency: shopifyMoney.currencyCode,
 });
 
-const _toDomain = (shopifyCheckout: CheckoutShopify, store: string): Checkout => ({
+const _toDomain = (
+  shopifyCheckout: CheckoutShopify,
+  store: string,
+): Checkout => ({
   store,
   id: shopifyCheckout.id,
   url: shopifyCheckout.webUrl,
@@ -75,6 +79,7 @@ const _toDomain = (shopifyCheckout: CheckoutShopify, store: string): Checkout =>
     title: node.title,
     variant: {
       id: node.variant.id,
+      sku: node.variant.sku,
       title: node.variant.title,
       price: _shopifyMoneyToDomain(node.variant.price),
       image: {
@@ -129,7 +134,7 @@ export const checkoutUpdateItemQuantity = async (
 
 /**
  * Add a variant to the checkout. Creates a new checkout if no `checkoutId` specified.
- * 
+ *
  * If a new checkout is created, the optional `customAttributes` are attached to the checkout.
  */
 export const checkoutAddItem = async (
@@ -182,7 +187,10 @@ export const checkoutAddItem = async (
         },
       },
     });
-    return _toDomain(createdCheckout.checkoutCreate.checkout, createdCheckout.store);
+    return _toDomain(
+      createdCheckout.checkoutCreate.checkout,
+      createdCheckout.store,
+    );
   }
 
   const result = await graphQlRunner<CheckoutAddLineitemResult>({

@@ -17,6 +17,7 @@ const FRAGMENTS = `
           title
           variant {
             id
+            sku
             title
             image {
               src: originalSrc
@@ -63,6 +64,7 @@ export type LineItem = {
   quantity: number;
   variant: {
     id: string;
+    sku: string;
     title: string;
     image: {
       src: string;
