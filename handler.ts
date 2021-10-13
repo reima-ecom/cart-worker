@@ -20,6 +20,7 @@ type CartConfiguration = {
   shopifyStore: string;
   shopifyStorefrontToken: string;
   cartTemplateUrl: string;
+  checkoutDomain?: string;
 };
 
 type UpdateQuantityOptions = {
@@ -97,6 +98,13 @@ export const _handleRequest = async (
 
   let response: Response;
 
+  // rewrite checkout url if needed
+  if (config.checkoutDomain && checkout) {
+    const url = new URL(checkout.url);
+    url.hostname = config.checkoutDomain;
+    checkout.url = url.toString();
+  }
+
   if (opts.acceptType === "application/json") {
     response = new Response(JSON.stringify(checkout), {
       headers: {
@@ -144,12 +152,14 @@ const getCartConfiguration = (
     shopifyStore,
     shopifyStorefrontToken,
     cartTemplateUrl,
+    checkoutDomain,
   ] = hostConfig.split(";");
 
   const config: CartConfiguration = {
     cartTemplateUrl,
     shopifyStore,
     shopifyStorefrontToken,
+    checkoutDomain,
   };
 
   return config;
