@@ -3,7 +3,7 @@ type = "javascript"
 account_id = "25fd4a605fa32029740e7374ebb26cab"
 workers_dev = true
 
-vars."us.reima.com" = "reima-us;d2990d8e29e763239f8e8ff6cefc9ebe;https://reima-us.netlify.app/cart/"
+vars."us.reima.com" = "reima-us;d2990d8e29e763239f8e8ff6cefc9ebe;https://reima-us.netlify.app/cart/;checkout.us.reima.com"
 vars."www.reima.ca" = "reima-canada;f116e71286381b2d0589b99a792d3ae7;https://www-reima-ca.reima.workers.dev/cart;checkout.reima.ca"
 vars."www.reimajapan.com" = "reima-jp;e0370fdfeed9aeac00130441c6e2cf76;https://www-reimajapan-com.reima.workers.dev/cart"
 vars."www.finnishbabybox.com" = "reima-fbb;b924450022119a018c5612ab7dfc0864;https://reima-fbb.netlify.app/cart/;checkout.finnishbabybox.com"
